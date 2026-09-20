@@ -385,6 +385,7 @@ footer{
         onReady: function(){
           ready = true;
           ctrl.hidden = false;
+          noCaptions();
           if (pending) { play(current(), {autoplay: pending.autoplay, scroll:false}); pending = null; }
           tick();
         },
@@ -401,12 +402,14 @@ footer{
           btnPlay.setAttribute('aria-label', playing ? '一時停止' : '再生');
           bigicon.textContent = e.data === S.ENDED ? '↻' : (playing ? '❚❚' : '▶');
           hint.textContent = e.data === S.PAUSED ? '続きを見る' : (e.data === S.ENDED ? 'もう一度見る' : '');
-          if (playing) { player.setPlaybackRate(rate); startTimer(); } else { stopTimer(); tick(); }
+          if (playing) { player.setPlaybackRate(rate); noCaptions(); startTimer(); } else { stopTimer(); tick(); }
         }
       }
     });
   };
   var lastState = -1, veilTimer = null;
+  // YouTube側の自動字幕を出さない（動画に焼き込まれた字幕と二重になるため）
+  function noCaptions(){ try { player.unloadModule('captions'); player.unloadModule('cc'); } catch(e){} }
   function veil(){
     stage.classList.add('veil-on');
     if (veilTimer) clearTimeout(veilTimer);
