@@ -78,21 +78,15 @@ h1{
   position:relative;width:100%;aspect-ratio:16/9;
   background:var(--video-bg);border-radius:8px;overflow:hidden;
 }
-.stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-.stage.portrait iframe{left:50%;transform:translateX(-50%);width:auto;aspect-ratio:9/16;height:100%}
+.stage video{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--video-bg)}
 /* 自前のポスター：YouTube側の題名・ロゴ・「YouTubeで見る」を一切見せない */
 .poster{
   position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;
   opacity:1;filter:none;transition:opacity .35s ease,filter .35s ease;
 }
 .stage.playing .poster{opacity:0}
-.stage.paused .poster,.stage.ended .poster{opacity:1;filter:brightness(.42)}
-/* 再生直後の数秒だけ上下に帯を出し、YouTubeの題名・ロゴが消えるまで隠す */
-.veil{position:absolute;inset:0;z-index:1;pointer-events:none}
-.veil .bar{position:absolute;left:0;right:0;height:19%;background:var(--video-bg);opacity:0;transition:opacity .6s ease}
-.veil .bar.top{top:0}
-.veil .bar.bottom{bottom:0}
-.stage.veil-on .veil .bar{opacity:1;transition:none}
+.stage.paused .poster{opacity:0}
+.stage.ended .poster{opacity:1;filter:brightness(.42)}
 /* 透明の盾：クリックはすべてこちらで受ける */
 .shield{
   position:absolute;inset:0;z-index:2;cursor:pointer;
@@ -230,9 +224,8 @@ footer{
   <section class="player" aria-label="動画プレーヤー">
     <div class="box" id="box">
     <div class="stage" id="stage">
-      <div id="yt"></div>
+      <video id="vid" preload="metadata" playsinline webkit-playsinline disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback"></video>
       <img class="poster" id="poster" src="posters/4SpF-rb8NAs.jpg?v=3" alt="">
-      <div class="veil" aria-hidden="true"><div class="bar top"></div><div class="bar bottom"></div></div>
       <button type="button" class="shield" id="shield" aria-label="再生 / 一時停止">
         <span class="big" id="bigicon">▶</span>
         <span class="hint" id="hint"></span>
@@ -271,15 +264,15 @@ footer{
   <div class="list-head">動画一覧</div>
   <ul class="list" id="list">
     <li>
-      <button type="button" data-id="4SpF-rb8NAs" data-slug="produce" data-tag="VIDEO 1" data-name="幸せ不動産プロデュース解説動画" data-note="17分" data-portrait="0" aria-current="true">
+      <button type="button" data-id="4SpF-rb8NAs" data-src="media/produce.mp4" data-slug="produce" data-tag="VIDEO 1" data-name="幸せ不動産プロデュース解説動画" data-note="フィラーカット済み" data-portrait="0" aria-current="true">
         <span class="thumb"><img src="thumbs/4SpF-rb8NAs.jpg?v=3" alt=""><span class="play"></span></span>
         <span class="txt"><span class="kind">VIDEO 1</span><span class="ttl">幸せ不動産プロデュース解説動画</span><span class="sub">17分</span></span>
       </button>
     </li>
     <li>
-      <button type="button" data-id="HYKlwUpswOw" data-slug="shindan" data-tag="VIDEO 2" data-name="物件がん診断" data-note="20分" data-portrait="0">
+      <button type="button" data-id="HYKlwUpswOw" data-src="media/shindan.mp4" data-slug="shindan" data-tag="VIDEO 2" data-name="物件がん診断" data-note="1.5倍速・フィラーカット済み" data-portrait="0">
         <span class="thumb"><img src="thumbs/HYKlwUpswOw.jpg?v=3" alt=""><span class="play"></span></span>
-        <span class="txt"><span class="kind">VIDEO 2</span><span class="ttl">物件がん診断</span><span class="sub">20分</span></span>
+        <span class="txt"><span class="kind">VIDEO 2</span><span class="ttl">物件がん診断</span><span class="sub">1.5倍速</span></span>
       </button>
     </li>
   </ul>
@@ -290,6 +283,7 @@ footer{
 <script>
 (function(){
   var stage = document.getElementById('stage');
+  var vid = document.getElementById('vid');
   var shield = document.getElementById('shield');
   var bigicon = document.getElementById('bigicon');
   var hint = document.getElementById('hint');
@@ -306,8 +300,7 @@ footer{
   var nowName = document.getElementById('now-name');
   var nowNote = document.getElementById('now-note');
   var buttons = document.querySelectorAll('#list button');
-
-  var player = null, ready = false, pending = null, timer = null, seeking = false, rate = 1;
+  var rate = 1, seeking = false;
 
   function fmt(s){
     s = Math.max(0, Math.floor(s || 0));
@@ -315,166 +308,106 @@ footer{
     var mm = (h ? String(m).padStart(2,'0') : m) + ':' + String(sec).padStart(2,'0');
     return h ? h + ':' + mm : mm;
   }
-
-  function current(){ return document.querySelector('#list button[aria-current="true"]'); }
-
+  function setState(st){
+    stage.classList.toggle('playing', st === 'playing');
+    stage.classList.toggle('paused', st === 'paused');
+    stage.classList.toggle('ended', st === 'ended');
+    btnPlay.textContent = st === 'playing' ? '❚❚' : '▶';
+    btnPlay.setAttribute('aria-label', st === 'playing' ? '一時停止' : '再生');
+    bigicon.textContent = st === 'ended' ? '↻' : (st === 'playing' ? '❚❚' : '▶');
+    hint.textContent = st === 'paused' ? '続きを見る' : (st === 'ended' ? 'もう一度見る' : '');
+  }
   function select(btn){
-    stage.classList.toggle('portrait', btn.getAttribute('data-portrait') === '1');
     poster.src = 'posters/' + btn.getAttribute('data-id') + '.jpg?v=3';
-    stage.classList.remove('playing','paused','ended','veil-on');
-    bigicon.textContent = '▶'; hint.textContent = '';
     nowTag.textContent = btn.getAttribute('data-tag');
     nowName.textContent = btn.getAttribute('data-name');
     nowNote.textContent = btn.getAttribute('data-note') || '';
     buttons.forEach(function(b){ b.removeAttribute('aria-current'); });
     btn.setAttribute('aria-current','true');
     if (history.replaceState) history.replaceState(null, '', '#' + btn.getAttribute('data-slug'));
+    vid.src = btn.getAttribute('data-src');
+    vid.playbackRate = rate;
+    setState('idle');
+    seek.value = 0; seek.style.setProperty('--p', '0%'); timeEl.textContent = '0:00 / 0:00';
   }
-
   function play(btn, opts){
     opts = opts || {};
     select(btn);
-    var id = btn.getAttribute('data-id');
-    if (ready) {
-      if (opts.autoplay) player.loadVideoById(id); else player.cueVideoById(id);
-      player.setPlaybackRate(rate);
-    } else {
-      pending = {id: id, autoplay: !!opts.autoplay};
-    }
+    if (opts.autoplay) vid.play();
     if (opts.scroll !== false) {
       var top = stage.getBoundingClientRect().top + window.pageYOffset - 16;
       window.scrollTo({top: top, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
     }
   }
-
-  buttons.forEach(function(b){
-    b.addEventListener('click', function(){ play(b, {autoplay: true}); });
-  });
+  buttons.forEach(function(b){ b.addEventListener('click', function(){ play(b, {autoplay: true}); }); });
 
   // URLの #produce / #shindan で、その動画を開いた状態で表示
-  function openFromHash(){
+  function fromHash(){
     var slug = (location.hash || '').replace('#', '');
-    var target = slug && document.querySelector('#list button[data-slug="' + slug + '"]');
-    return target || null;
+    return (slug && document.querySelector('#list button[data-slug="' + slug + '"]')) || null;
   }
-  var first = openFromHash() || buttons[0];
-  select(first);
+  select(fromHash() || buttons[0]);
   window.addEventListener('hashchange', function(){
-    var t = openFromHash();
+    var t = fromHash();
     if (t && t.getAttribute('aria-current') !== 'true') play(t, {autoplay:false, scroll:false});
   });
 
-  // ---- YouTube IFrame API ----
-  window.onYouTubeIframeAPIReady = function(){
-    player = new YT.Player('yt', {
-      videoId: first.getAttribute('data-id'),
-      playerVars: {rel:0, modestbranding:1, playsinline:1, controls:0, disablekb:1, fs:0, iv_load_policy:3, origin: location.origin},
-      events: {
-        onReady: function(){
-          ready = true;
-          ctrl.hidden = false;
-          noCaptions();
-          if (pending) { play(current(), {autoplay: pending.autoplay, scroll:false}); pending = null; }
-          tick();
-        },
-        onStateChange: function(e){
-          var S = YT.PlayerState;
-          if (e.data === S.BUFFERING) return;
-          var playing = e.data === S.PLAYING;
-          stage.classList.toggle('playing', playing);
-          stage.classList.toggle('paused', e.data === S.PAUSED);
-          stage.classList.toggle('ended', e.data === S.ENDED);
-          if (playing && lastState !== S.PLAYING) veil();
-          lastState = e.data;
-          btnPlay.textContent = playing ? '❚❚' : '▶';
-          btnPlay.setAttribute('aria-label', playing ? '一時停止' : '再生');
-          bigicon.textContent = e.data === S.ENDED ? '↻' : (playing ? '❚❚' : '▶');
-          hint.textContent = e.data === S.PAUSED ? '続きを見る' : (e.data === S.ENDED ? 'もう一度見る' : '');
-          if (playing) { player.setPlaybackRate(rate); noCaptions(); startTimer(); } else { stopTimer(); tick(); }
-        }
-      }
-    });
-  };
-  var lastState = -1, veilTimer = null;
-  // YouTube側の自動字幕を出さない（動画に焼き込まれた字幕と二重になるため）
-  function noCaptions(){ try { player.unloadModule('captions'); player.unloadModule('cc'); } catch(e){} }
-  function veil(){
-    stage.classList.add('veil-on');
-    if (veilTimer) clearTimeout(veilTimer);
-    veilTimer = setTimeout(function(){ stage.classList.remove('veil-on'); }, 3800);
-  }
-  var s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s);
-
-  function startTimer(){ stopTimer(); timer = setInterval(tick, 250); }
-  function stopTimer(){ if (timer) clearInterval(timer); timer = null; }
+  vid.addEventListener('play', function(){ setState('playing'); });
+  vid.addEventListener('pause', function(){ if (!vid.ended) setState('paused'); });
+  vid.addEventListener('ended', function(){ setState('ended'); });
+  vid.addEventListener('loadedmetadata', tick);
+  vid.addEventListener('timeupdate', tick);
   function tick(){
-    if (!ready) return;
-    var d = player.getDuration() || 0, t = player.getCurrentTime() || 0;
+    var d = vid.duration || 0, t = vid.currentTime || 0;
     if (!seeking && d) { seek.value = Math.round(t / d * 1000); seek.style.setProperty('--p', (t/d*100) + '%'); }
     timeEl.textContent = fmt(t) + ' / ' + fmt(d);
   }
-
   function toggle(){
-    if (!ready) return;
-    var st = player.getPlayerState();
-    if (st === YT.PlayerState.PLAYING) player.pauseVideo();
-    else if (st === YT.PlayerState.ENDED) { player.seekTo(0, true); player.playVideo(); }
-    else player.playVideo();
+    if (vid.ended) { vid.currentTime = 0; vid.play(); return; }
+    if (vid.paused) vid.play(); else vid.pause();
   }
   shield.addEventListener('click', toggle);
   btnPlay.addEventListener('click', toggle);
-
   seek.addEventListener('input', function(){
     seeking = true;
-    var d = player && ready ? player.getDuration() : 0;
     seek.style.setProperty('--p', (seek.value/10) + '%');
-    timeEl.textContent = fmt(d * seek.value / 1000) + ' / ' + fmt(d);
+    timeEl.textContent = fmt((vid.duration||0) * seek.value / 1000) + ' / ' + fmt(vid.duration||0);
   });
   seek.addEventListener('change', function(){
-    if (ready) player.seekTo(player.getDuration() * seek.value / 1000, true);
+    if (vid.duration) vid.currentTime = vid.duration * seek.value / 1000;
     seeking = false;
   });
-
   speedBtns.forEach(function(b){
     b.addEventListener('click', function(){
       rate = parseFloat(b.getAttribute('data-rate'));
       speedBtns.forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-      if (ready) player.setPlaybackRate(rate);
+      vid.playbackRate = rate;
     });
   });
-
   function setMuteIcon(muted){
     btnMute.classList.toggle('muted', muted);
     btnMute.setAttribute('aria-label', muted ? '消音を解除' : '消音');
   }
-  btnMute.addEventListener('click', function(){
-    if (!ready) return;
-    if (player.isMuted()) { player.unMute(); setMuteIcon(false); }
-    else { player.mute(); setMuteIcon(true); }
-  });
+  btnMute.addEventListener('click', function(){ vid.muted = !vid.muted; setMuteIcon(vid.muted); });
   vol.addEventListener('input', function(){
-    if (!ready) return;
-    player.setVolume(parseInt(vol.value, 10));
-    if (parseInt(vol.value,10) > 0 && player.isMuted()) { player.unMute(); }
-    setMuteIcon(parseInt(vol.value,10) === 0);
+    vid.volume = parseInt(vol.value, 10) / 100;
+    if (vid.volume > 0) vid.muted = false;
+    setMuteIcon(vid.muted || vid.volume === 0);
   });
-
   btnFs.addEventListener('click', function(){
     if (document.fullscreenElement) { document.exitFullscreen(); return; }
     var el = document.getElementById('box');
     if (el.requestFullscreen) el.requestFullscreen();
-    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    else if (vid.webkitEnterFullscreen) vid.webkitEnterFullscreen();
   });
-
-  // キーボード：スペース=再生/停止、←→=10秒
   document.addEventListener('keydown', function(e){
-    if (!ready) return;
     var tag = (e.target.tagName || '').toLowerCase();
     if (tag === 'input' || tag === 'textarea') return;
     if (e.key === ' ') { e.preventDefault(); toggle(); }
-    else if (e.key === 'ArrowRight') { player.seekTo(player.getCurrentTime() + 10, true); }
-    else if (e.key === 'ArrowLeft') { player.seekTo(Math.max(0, player.getCurrentTime() - 10), true); }
+    else if (e.key === 'ArrowRight') { vid.currentTime = Math.min(vid.duration || 0, vid.currentTime + 10); }
+    else if (e.key === 'ArrowLeft') { vid.currentTime = Math.max(0, vid.currentTime - 10); }
   });
+  ctrl.hidden = false;
 })();
 </script>
 </body>
