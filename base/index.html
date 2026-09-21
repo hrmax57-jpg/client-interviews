@@ -225,7 +225,7 @@ footer{
     <div class="box" id="box">
     <div class="stage" id="stage">
       <video id="vid" preload="metadata" playsinline webkit-playsinline disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback"></video>
-      <img class="poster" id="poster" src="posters/4SpF-rb8NAs.jpg?v=3" alt="">
+      <img class="poster" id="poster" src="posters/4SpF-rb8NAs.jpg?v=4" alt="">
       <button type="button" class="shield" id="shield" aria-label="再生 / 一時停止">
         <span class="big" id="bigicon">▶</span>
         <span class="hint" id="hint"></span>
@@ -265,13 +265,13 @@ footer{
   <ul class="list" id="list">
     <li>
       <button type="button" data-id="4SpF-rb8NAs" data-src="media/produce.mp4" data-slug="produce" data-tag="VIDEO 1" data-name="幸せ不動産プロデュース解説動画" data-note="フィラーカット済み" data-portrait="0" aria-current="true">
-        <span class="thumb"><img src="thumbs/4SpF-rb8NAs.jpg?v=3" alt=""><span class="play"></span></span>
+        <span class="thumb"><img src="thumbs/4SpF-rb8NAs.jpg?v=4" alt=""><span class="play"></span></span>
         <span class="txt"><span class="kind">VIDEO 1</span><span class="ttl">幸せ不動産プロデュース解説動画</span><span class="sub">17分</span></span>
       </button>
     </li>
     <li>
       <button type="button" data-id="HYKlwUpswOw" data-src="media/shindan.mp4" data-slug="shindan" data-tag="VIDEO 2" data-name="物件がん診断" data-note="1.5倍速・フィラーカット済み" data-portrait="0">
-        <span class="thumb"><img src="thumbs/HYKlwUpswOw.jpg?v=3" alt=""><span class="play"></span></span>
+        <span class="thumb"><img src="thumbs/HYKlwUpswOw.jpg?v=4" alt=""><span class="play"></span></span>
         <span class="txt"><span class="kind">VIDEO 2</span><span class="ttl">物件がん診断</span><span class="sub">1.5倍速</span></span>
       </button>
     </li>
@@ -318,7 +318,7 @@ footer{
     hint.textContent = st === 'paused' ? '続きを見る' : (st === 'ended' ? 'もう一度見る' : '');
   }
   function select(btn){
-    poster.src = 'posters/' + btn.getAttribute('data-id') + '.jpg?v=3';
+    poster.src = 'posters/' + btn.getAttribute('data-id') + '.jpg?v=4';
     nowTag.textContent = btn.getAttribute('data-tag');
     nowName.textContent = btn.getAttribute('data-name');
     nowNote.textContent = btn.getAttribute('data-note') || '';
