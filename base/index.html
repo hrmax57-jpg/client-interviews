@@ -231,7 +231,7 @@ footer{
     <div class="box" id="box">
     <div class="stage" id="stage">
       <div id="yt"></div>
-      <img class="poster" id="poster" src="posters/4SpF-rb8NAs.jpg" alt="">
+      <img class="poster" id="poster" src="posters/4SpF-rb8NAs.jpg?v=3" alt="">
       <div class="veil" aria-hidden="true"><div class="bar top"></div><div class="bar bottom"></div></div>
       <button type="button" class="shield" id="shield" aria-label="再生 / 一時停止">
         <span class="big" id="bigicon">▶</span>
@@ -272,13 +272,13 @@ footer{
   <ul class="list" id="list">
     <li>
       <button type="button" data-id="4SpF-rb8NAs" data-slug="produce" data-tag="VIDEO 1" data-name="幸せ不動産プロデュース解説動画" data-note="17分" data-portrait="0" aria-current="true">
-        <span class="thumb"><img src="thumbs/4SpF-rb8NAs.jpg" alt=""><span class="play"></span></span>
+        <span class="thumb"><img src="thumbs/4SpF-rb8NAs.jpg?v=3" alt=""><span class="play"></span></span>
         <span class="txt"><span class="kind">VIDEO 1</span><span class="ttl">幸せ不動産プロデュース解説動画</span><span class="sub">17分</span></span>
       </button>
     </li>
     <li>
       <button type="button" data-id="HYKlwUpswOw" data-slug="shindan" data-tag="VIDEO 2" data-name="物件がん診断" data-note="20分" data-portrait="0">
-        <span class="thumb"><img src="thumbs/HYKlwUpswOw.jpg" alt=""><span class="play"></span></span>
+        <span class="thumb"><img src="thumbs/HYKlwUpswOw.jpg?v=3" alt=""><span class="play"></span></span>
         <span class="txt"><span class="kind">VIDEO 2</span><span class="ttl">物件がん診断</span><span class="sub">20分</span></span>
       </button>
     </li>
@@ -320,7 +320,7 @@ footer{
 
   function select(btn){
     stage.classList.toggle('portrait', btn.getAttribute('data-portrait') === '1');
-    poster.src = 'posters/' + btn.getAttribute('data-id') + '.jpg';
+    poster.src = 'posters/' + btn.getAttribute('data-id') + '.jpg?v=3';
     stage.classList.remove('playing','paused','ended','veil-on');
     bigicon.textContent = '▶'; hint.textContent = '';
     nowTag.textContent = btn.getAttribute('data-tag');
