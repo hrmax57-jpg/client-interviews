@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ベース動画視聴</title>
+<title>クライアントインタビュー</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Noto+Sans+JP:wght@400;500&display=swap">
 <style>
@@ -216,9 +216,9 @@ footer{
 <body>
 <div class="wrap">
   <header>
-    <div class="eyebrow">BASE VIDEOS</div>
-    <h1>ベース動画視聴</h1>
-    <p class="lead">相談カウンセリングのパフォーマンス（結果）を最大化するために、ご視聴が必須となります。下の一覧から選ぶと、このページ内で再生されます。</p>
+    <div class="eyebrow">CLIENT INTERVIEW</div>
+    <h1>クライアントインタビュー</h1>
+    <p class="lead">実際に取り組まれたお客様に、始める前の状況・決め手・いま感じていることを率直にお話しいただきました。下の一覧から選ぶと、このページ内で再生されます。</p>
   </header>
 
   <section class="player" aria-label="動画プレーヤー">
@@ -255,31 +255,44 @@ footer{
     </div>
     </div>
     <div class="now" aria-live="polite">
-      <span class="tag" id="now-tag">VIDEO 1</span>
-      <h2 class="name" id="now-name">幸せ不動産プロデュース解説動画</h2>
-      <p class="note" id="now-note">17分</p>
+      <span class="tag" id="now-tag">INTERVIEW 1</span>
+      <h2 class="name" id="now-name">世界水球 銀メダリスト</h2>
+      <p class="note" id="now-note"></p>
     </div>
   </section>
 
-  <div class="list-head">動画一覧</div>
+  <div class="list-head">インタビュー一覧</div>
   <ul class="list" id="list">
     <li>
-      <button type="button" data-id="4SpF-rb8NAs" data-src="media/produce.mp4" data-slug="produce" data-tag="VIDEO 1" data-name="幸せ不動産プロデュース解説動画" data-note="16分" data-portrait="0" aria-current="true">
-        <span class="thumb"><img src="thumbs/4SpF-rb8NAs.jpg?v=4" alt=""><span class="play"></span></span>
-        <span class="txt"><span class="kind">VIDEO 1</span><span class="ttl">幸せ不動産プロデュース解説動画</span><span class="sub">16分</span></span>
+      <button type="button" data-id="6zfitXzKqVU" data-slug="suikyu" data-tag="INTERVIEW 1" data-name="世界水球 銀メダリスト" data-note="" data-src="media/suikyu.mp4" aria-current="true">
+        <span class="thumb"><img src="thumbs/6zfitXzKqVU.jpg?v=5" alt=""><span class="play"></span></span>
+        <span class="txt"><span class="kind">INTERVIEW 1</span><span class="ttl">世界水球 銀メダリスト</span></span>
       </button>
     </li>
     <li>
-      <button type="button" data-id="HYKlwUpswOw" data-src="media/shindan.mp4" data-slug="shindan" data-tag="VIDEO 2" data-name="物件がん診断" data-note="12分" data-portrait="0">
-        <span class="thumb"><img src="thumbs/HYKlwUpswOw.jpg?v=4" alt=""><span class="play"></span></span>
-        <span class="txt"><span class="kind">VIDEO 2</span><span class="ttl">物件がん診断</span><span class="sub">12分</span></span>
+      <button type="button" data-id="YlkwrmBTtcU" data-slug="kitaoka" data-tag="INTERVIEW 2" data-name="北岡ご夫妻" data-note="" data-src="media/kitaoka/index.m3u8">
+        <span class="thumb"><img src="thumbs/YlkwrmBTtcU.jpg?v=5" alt=""><span class="play"></span></span>
+        <span class="txt"><span class="kind">INTERVIEW 2</span><span class="ttl">北岡ご夫妻</span></span>
+      </button>
+    </li>
+    <li>
+      <button type="button" data-id="FhSLi0SdFzQ" data-slug="suga" data-tag="INTERVIEW 3" data-name="須賀 康仁 さん" data-note="" data-src="media/suga/index.m3u8">
+        <span class="thumb"><img src="thumbs/FhSLi0SdFzQ.jpg?v=5" alt=""><span class="play"></span></span>
+        <span class="txt"><span class="kind">INTERVIEW 3</span><span class="ttl">須賀 康仁 さん</span></span>
+      </button>
+    </li>
+    <li>
+      <button type="button" data-id="JacgheGjseE" data-slug="short" data-tag="SHORT" data-name="クライアントインタビュー（ショート版）" data-note="1分ダイジェスト" data-src="media/short.mp4">
+        <span class="thumb"><img src="thumbs/JacgheGjseE.jpg?v=5" alt=""><span class="play"></span></span>
+        <span class="txt"><span class="kind">SHORT</span><span class="ttl">クライアントインタビュー（ショート版）</span><span class="sub">1分ダイジェスト</span></span>
       </button>
     </li>
   </ul>
 
-  <footer>ご相談前に2本ともご視聴ください。</footer>
+  <footer>掲載している動画はご本人の了承のもと公開しています。</footer>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
 <script>
 (function(){
   var stage = document.getElementById('stage');
@@ -325,10 +338,21 @@ footer{
     buttons.forEach(function(b){ b.removeAttribute('aria-current'); });
     btn.setAttribute('aria-current','true');
     if (history.replaceState) history.replaceState(null, '', '#' + btn.getAttribute('data-slug'));
-    vid.src = btn.getAttribute('data-src');
+    loadSource(btn.getAttribute('data-src'));
     vid.playbackRate = rate;
     setState('idle');
     seek.value = 0; seek.style.setProperty('--p', '0%'); timeEl.textContent = '0:00 / 0:00';
+  }
+  var hls = null;
+  function loadSource(src){
+    if (hls) { hls.destroy(); hls = null; }
+    if (/\.m3u8$/.test(src)) {
+      if (vid.canPlayType('application/vnd.apple.mpegurl')) { vid.src = src; }
+      else if (window.Hls && Hls.isSupported()) { hls = new Hls(); hls.loadSource(src); hls.attachMedia(vid); }
+      else { vid.src = src; }
+    } else {
+      vid.src = src;
+    }
   }
   function play(btn, opts){
     opts = opts || {};
@@ -341,7 +365,7 @@ footer{
   }
   buttons.forEach(function(b){ b.addEventListener('click', function(){ play(b, {autoplay: true}); }); });
 
-  // URLの #produce / #shindan で、その動画を開いた状態で表示
+  // URLの #suikyu / #kitaoka / #suga / #short で、そのインタビューを開いた状態で表示
   function fromHash(){
     var slug = (location.hash || '').replace('#', '');
     return (slug && document.querySelector('#list button[data-slug="' + slug + '"]')) || null;
